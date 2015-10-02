@@ -24,3 +24,5 @@ libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "2.2.4" % "test",
   "com.github.jdgoldie" %% "akka-persistence-shared-inmemory" % "1.0.16" % "test"
 )
+
+libraryDependencies += "com.trueaccord.scalapb" %% "scalapb-runtime" % "0.4.19" % PB.protobufConfig
