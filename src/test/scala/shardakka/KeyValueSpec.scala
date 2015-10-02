@@ -5,7 +5,7 @@ import akka.testkit.TestKit
 import akka.util.Timeout
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfter, FlatSpecLike, Matchers}
+import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._

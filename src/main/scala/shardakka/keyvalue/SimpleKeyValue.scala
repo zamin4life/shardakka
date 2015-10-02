@@ -4,10 +4,10 @@ import akka.actor._
 import akka.contrib.pattern.{ ClusterSingletonProxy, ClusterSingletonManager }
 import akka.pattern.ask
 import akka.util.Timeout
+import com.github.benmanes.caffeine.cache.Caffeine
 import im.actor.serialization.ActorSerializer
 import shardakka.{ StringCodec, Codec, ShardakkaExtension }
 
-import scala.collection.immutable
 import scala.concurrent.{ ExecutionContext, Future }
 
 private case object End
@@ -52,29 +52,39 @@ trait SimpleKeyValueExtension {
   ActorSerializer.register(5501, classOf[ValueEvents.ValueUpdated])
   ActorSerializer.register(5502, classOf[ValueEvents.ValueDeleted])
 
-  @volatile
-  private var kvs = immutable.Map.empty[String, SimpleKeyValue[_]]
+  private val kvs = Caffeine.newBuilder().build[String, SimpleKeyValue[_]]()
 
   def simpleKeyValue[A](name: String, codec: Codec[A])(implicit system: ActorSystem): SimpleKeyValue[A] = {
-    kvs.get(name) match {
+    Option(kvs.getIfPresent(name)) match {
       case Some(kv) ⇒ kv.asInstanceOf[SimpleKeyValue[A]]
       case None ⇒
-        val manager = system.actorOf(
-          ClusterSingletonManager.props(
-            singletonProps = SimpleKeyValueRoot.props(name),
-            singletonName = name,
-            terminationMessage = End,
-            role = None
-          ), name = s"SimpleKeyValueRoot-$name"
-        )
+        val actorName = s"SimpleKeyValueRoot-$name"
 
-        val proxy = system.actorOf(
-          ClusterSingletonProxy.props(singletonPath = s"/user/SimpleKeyValueRoot-$name/$name", role = None),
-          name = s"SimpleKeyValueRoot-$name-Proxy"
-        )
+        val (manager, proxy) =
+          if (system.settings.ProviderClass.contains("ClusterActorRefProvider")) {
+            val mgr = system.actorOf(
+              ClusterSingletonManager.props(
+                singletonProps = SimpleKeyValueRoot.props(name),
+                singletonName = name,
+                terminationMessage = End,
+                role = None
+              ), name = actorName
+            )
+
+            val prx = system.actorOf(
+              ClusterSingletonProxy.props(singletonPath = s"/user/$actorName/$name", role = None),
+              name = s"SimpleKeyValueRoot-$name-Proxy"
+            )
+
+            (mgr, prx)
+          } else {
+            val root = system.actorOf(SimpleKeyValueRoot.props(name), actorName)
+
+            (root, root)
+          }
 
         val kv = SimpleKeyValue(name, manager, proxy, codec)
-        kvs += (name → kv)
+        kvs.put(name, kv)
         kv
     }
   }
@@ -82,9 +92,9 @@ trait SimpleKeyValueExtension {
   def simpleKeyValue(name: String)(implicit system: ActorSystem): SimpleKeyValue[String] =
     simpleKeyValue(name, StringCodec)
 
-  def shutdownKeyValue(name: String) = kvs.get(name) foreach { kv ⇒
+  def shutdownKeyValue(name: String) = Option(kvs.getIfPresent(name)) foreach { kv ⇒
     kv.shutdown()
-    kvs -= name
+    kvs.invalidate(name)
   }
 }
 
