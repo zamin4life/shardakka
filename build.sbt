@@ -6,6 +6,11 @@ PB.runProtoc in PB.protobufConfig := (args => com.github.os72.protocjar.Protoc.r
 
 scalaVersion := "2.11.7"
 
+name := "shardakka"
+organization := "im.actor"
+organizationName := "Actor LLC"
+organizationHomepage := Some(new URL("https://actor.im/"))
+
 val akkaV = "2.3.13"
 
 resolvers ++= Seq(
