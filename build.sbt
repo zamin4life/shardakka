@@ -27,6 +27,7 @@ libraryDependencies ++= Seq(
   "com.eaio.uuid" % "uuid" % "3.4",
   "com.google.protobuf" % "protobuf-java" % "3.0.0-alpha-3",
   "im.actor" %% "akka-scalapb-serialization" % "0.1.3",
+  "org.scala-lang.modules" %% "scala-java8-compat" % "0.7.0",
   "org.scalatest" %% "scalatest" % "2.2.4" % "test",
   "com.github.jdgoldie" %% "akka-persistence-shared-inmemory" % "1.0.16" % "test"
 )
