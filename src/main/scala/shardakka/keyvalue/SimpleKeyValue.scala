@@ -12,21 +12,113 @@ import im.actor.serialization.ActorSerializer
 import shardakka.{ StringCodec, Codec, ShardakkaExtension }
 
 import scala.collection.JavaConverters._
+import scala.concurrent.duration._
 import scala.compat.java8.OptionConverters._
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
 
 private case object End
 
-final case class SimpleKeyValueJava[A](underlying: SimpleKeyValue[A]) {
+final case class SimpleKeyValueJava[A](underlying: SimpleKeyValue[A], defaultTimeout: Timeout) {
   import underlying.system.dispatcher
 
+  /**
+   * Asynchronously upsert
+   *
+   * @param key
+   * @param value
+   * @param timeout
+   * @return
+   */
   def upsert(key: String, value: A, timeout: Timeout): Future[Unit] = underlying.upsert(key, value)(timeout)
 
+  /**
+   * Synchronously upsert
+   *
+   * @param key
+   * @param value
+   * @param timeout
+   */
+  def syncUpsert(key: String, value: A, timeout: Timeout): Unit = Await.result(upsert(key, value, timeout), timeout.duration)
+
+  /**
+   * Synchronously upsert with default timeout
+   * @param key
+   * @param value
+   */
+  def syncUpsert(key: String, value: A): Unit = syncUpsert(key, value, defaultTimeout)
+
+  /**
+   * Asynchronously delete
+   *
+   * @param key
+   * @param timeout
+   * @return
+   */
   def delete(key: String, timeout: Timeout): Future[Unit] = underlying.delete(key)(timeout)
 
+  /**
+   * Synchronously delete
+   *
+   * @param key
+   * @param timeout
+   */
+  def syncDelete(key: String, timeout: Timeout): Unit = Await.result(delete(key, timeout), timeout.duration)
+
+  /**
+   * Synchronously delete with default timeout
+   *
+   * @param key
+   */
+  def syncDelete(key: String): Unit = syncDelete(key, defaultTimeout)
+
+  /**
+   * Asynchronously get
+   *
+   * @param key
+   * @param timeout
+   * @return
+   */
   def get(key: String, timeout: Timeout): Future[Optional[A]] = underlying.get(key)(timeout) map (_.asJava)
 
+  /**
+   * Synchronously get
+   *
+   * @param key
+   * @param timeout
+   * @return
+   */
+  def syncGet(key: String, timeout: Timeout): Optional[A] = Await.result(get(key, timeout), timeout.duration)
+
+  /**
+   * Synchronously get with default timeout
+   *
+   * @param key
+   * @return
+   */
+  def syncGet(key: String): Optional[A] = syncGet(key, defaultTimeout)
+
+  /**
+   * Asynchronously get keys
+   *
+   * @param timeout
+   * @return
+   */
   def getKeys(timeout: Timeout): Future[util.List[String]] = underlying.getKeys()(timeout) map (_.asJava)
+
+  /**
+   * Synchronously get keys
+   *
+   * @param timeout
+   * @return
+   */
+  def syncGetKeys(timeout: Timeout): util.List[String] = Await.result(getKeys(timeout), timeout.duration)
+
+  /**
+   * Synchronously get keys with default timeout
+   *
+   * @return
+   */
+  def syncGetKeys(): util.List[String] = syncGetKeys(defaultTimeout)
 }
 
 final case class SimpleKeyValue[A](
@@ -36,6 +128,8 @@ final case class SimpleKeyValue[A](
   private val codec: Codec[A]
 )(implicit private[keyvalue] val system: ActorSystem) {
   import system.dispatcher
+
+  private def DefaultTimeout = 5.seconds
 
   def upsert(key: String, value: A)(implicit timeout: Timeout): Future[Unit] =
     (proxy ? ValueCommands.Upsert(key, codec.toBytes(value))) map (_ ⇒ ())
@@ -49,7 +143,20 @@ final case class SimpleKeyValue[A](
   def getKeys()(implicit timeout: Timeout): Future[Seq[String]] =
     (proxy ? RootQueries.GetKeys()).mapTo[RootQueries.GetKeysResponse] map (_.keys)
 
-  def asJava(): SimpleKeyValueJava[A] = SimpleKeyValueJava(this)
+  /**
+   * Get Java interface with default operation timeout 5 seconds
+   *
+   * @return
+   */
+  def asJava(): SimpleKeyValueJava[A] = SimpleKeyValueJava(this, DefaultTimeout)
+
+  /**
+   * Get Java interface
+   *
+   * @param defaultOperationTimeout
+   * @return
+   */
+  def asJava(defaultOperationTimeout: Timeout): SimpleKeyValueJava[A] = SimpleKeyValueJava(this, defaultOperationTimeout)
 
   private[keyvalue] def shutdown(): Unit = {
     proxy ! End
