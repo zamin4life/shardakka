@@ -5,7 +5,7 @@ import shardakka.keyvalue.SimpleKeyValueExtension
 import scala.concurrent.duration._
 
 final class ShardakkaExtension(_system: ExtendedActorSystem) extends Extension with SimpleKeyValueExtension {
-  private implicit val system: ActorSystem = _system
+  protected implicit val system: ActorSystem = _system
 }
 
 object ShardakkaExtension extends ExtensionId[ShardakkaExtension] with ExtensionIdProvider {

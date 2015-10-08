@@ -182,7 +182,7 @@ trait SimpleKeyValueExtension {
 
   private val kvs = Caffeine.newBuilder().build[String, SimpleKeyValue[_]]()
 
-  def simpleKeyValue[A](name: String, codec: Codec[A])(implicit system: ActorSystem): SimpleKeyValue[A] = {
+  def simpleKeyValue[A](name: String, codec: Codec[A]): SimpleKeyValue[A] = {
     Option(kvs.getIfPresent(name)) match {
       case Some(kv) ⇒ kv.asInstanceOf[SimpleKeyValue[A]]
       case None ⇒
@@ -217,7 +217,7 @@ trait SimpleKeyValueExtension {
     }
   }
 
-  def simpleKeyValue(name: String)(implicit system: ActorSystem): SimpleKeyValue[String] =
+  def simpleKeyValue(name: String): SimpleKeyValue[String] =
     simpleKeyValue(name, StringCodec)
 
   def shutdownKeyValue(name: String) = Option(kvs.getIfPresent(name)) foreach { kv ⇒
