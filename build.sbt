@@ -8,7 +8,6 @@ PB.protobufSettings
 PB.runProtoc in PB.protobufConfig := (args => com.github.os72.protocjar.Protoc.runProtoc("-v300" +: args.toArray))
 
 scalaVersion := "2.11.7"
-crossPaths := false
 
 name := "shardakka"
 organization := "im.actor"
