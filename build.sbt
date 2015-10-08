@@ -1,4 +1,7 @@
 import com.trueaccord.scalapb.{ScalaPbPlugin => PB}
+import sbtrelease._
+import ReleaseStateTransformations._
+import com.typesafe.sbt.pgp.PgpKeys._
 
 PB.protobufSettings
 
@@ -28,8 +31,24 @@ libraryDependencies ++= Seq(
   "com.google.protobuf" % "protobuf-java" % "3.0.0-alpha-3",
   "im.actor" %% "akka-scalapb-serialization" % "0.1.3",
   "org.scala-lang.modules" %% "scala-java8-compat" % "0.7.0",
+  "com.trueaccord.scalapb" %% "scalapb-runtime" % "0.4.19" % PB.protobufConfig,
   "org.scalatest" %% "scalatest" % "2.2.4" % "test",
   "com.github.jdgoldie" %% "akka-persistence-shared-inmemory" % "1.0.16" % "test"
 )
 
-libraryDependencies += "com.trueaccord.scalapb" %% "scalapb-runtime" % "0.4.19" % PB.protobufConfig
+releaseProcess := Seq[ReleaseStep](
+  checkSnapshotDependencies,
+  inquireVersions,
+  runClean,
+  runTest,
+  setReleaseVersion,
+  commitReleaseVersion,
+  tagRelease,
+  ReleaseStep(action = Command.process("publishSigned", _)),
+  setNextVersion,
+  commitNextVersion,
+  ReleaseStep(action = Command.process("sonatypeReleaseAll", _)),
+  pushChanges
+)
+
+unmanagedResourceDirectories in Compile += baseDirectory.value / "src" / "main" / "protobuf"
