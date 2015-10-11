@@ -3,6 +3,7 @@ package shardakka
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import akka.util.Timeout
+import com.typesafe.config.{ConfigFactory, Config}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.time.{Seconds, Span}
 import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
@@ -10,7 +11,30 @@ import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
-final class KeyValueSpec extends TestKit(ActorSystem())
+final class KeyValueSpecLocal extends KeyValueSpec(ActorSystem())
+
+final class KeyValueSpecCluster extends KeyValueSpec(ActorSystem("kvspec", ConfigFactory.parseString(
+  """
+    |akka {
+    |  actor {
+    |    provider = "akka.cluster.ClusterActorRefProvider"
+    |  }
+    |
+    |  remote {
+    |    netty.tcp {
+    |      hostname = "127.0.0.1"
+    |      port = 2552
+    |    }
+    |  }
+    |
+    |  cluster {
+    |    seed-nodes = [
+    |      "akka.tcp://kvspec@127.0.0.1:2552"]
+    |  }
+    |}
+  """.stripMargin)))
+
+abstract class KeyValueSpec(system: ActorSystem) extends TestKit(system)
 with FlatSpecLike
 with ScalaFutures
 with Matchers

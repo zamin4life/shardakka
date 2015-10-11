@@ -199,7 +199,7 @@ trait SimpleKeyValueExtension {
             )
 
             val prx = system.actorOf(
-              ClusterSingletonProxy.props(mgr.path.toString, ClusterSingletonProxySettings(system)),
+              ClusterSingletonProxy.props(mgr.path.toStringWithoutAddress, ClusterSingletonProxySettings(system)),
               name = s"SimpleKeyValueRoot-$name-Proxy"
             )
 
