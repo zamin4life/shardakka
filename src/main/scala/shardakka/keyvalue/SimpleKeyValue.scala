@@ -4,7 +4,7 @@ import java.util
 import java.util.Optional
 
 import akka.actor._
-import akka.contrib.pattern.{ ClusterSingletonProxy, ClusterSingletonManager }
+import akka.cluster.singleton.{ClusterSingletonProxySettings, ClusterSingletonManagerSettings, ClusterSingletonProxy, ClusterSingletonManager}
 import akka.pattern.ask
 import akka.util.Timeout
 import com.github.benmanes.caffeine.cache.Caffeine
@@ -193,14 +193,13 @@ trait SimpleKeyValueExtension {
             val mgr = system.actorOf(
               ClusterSingletonManager.props(
                 singletonProps = SimpleKeyValueRoot.props(name),
-                singletonName = name,
                 terminationMessage = End,
-                role = None
+                settings = ClusterSingletonManagerSettings(system)
               ), name = actorName
             )
 
             val prx = system.actorOf(
-              ClusterSingletonProxy.props(singletonPath = s"/user/$actorName/$name", role = None),
+              ClusterSingletonProxy.props(mgr.path.toString, ClusterSingletonProxySettings(system)),
               name = s"SimpleKeyValueRoot-$name-Proxy"
             )
 

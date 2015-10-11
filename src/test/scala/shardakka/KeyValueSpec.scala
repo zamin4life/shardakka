@@ -17,7 +17,7 @@ with Matchers
 with BeforeAndAfterAll {
 
   it should "set and get values" in setAndGet
-  it should "get keys lsit" in keysList
+  it should "get keys list" in keysList
   it should "restore state" in restoreState
   it should "upsert and delete" in upsertAndDelete
 
