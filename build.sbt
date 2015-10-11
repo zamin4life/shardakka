@@ -30,7 +30,7 @@ libraryDependencies ++= Seq(
   "com.eaio.uuid" % "uuid" % "3.4",
   "com.google.guava" % "guava" % "18.0",
   "com.google.protobuf" % "protobuf-java" % "3.0.0-alpha-3",
-  "im.actor" %% "akka-scalapb-serialization" % "0.1.4",
+  "im.actor" %% "akka-scalapb-serialization" % "0.1.6",
   "org.scala-lang.modules" %% "scala-java8-compat" % "0.7.0",
   "com.trueaccord.scalapb" %% "scalapb-runtime" % "0.5.14" % PB.protobufConfig,
   "org.scalatest" %% "scalatest" % "2.2.4" % "test"
