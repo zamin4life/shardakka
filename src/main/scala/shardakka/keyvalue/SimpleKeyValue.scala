@@ -189,7 +189,7 @@ trait SimpleKeyValueExtension {
         val actorName = s"SimpleKeyValueRoot-$name"
 
         val (manager, proxy) =
-          if (system.settings.ProviderClass.contains("ClusterActorRefProvider")) {
+          if (isCluster) {
             val mgr = system.actorOf(
               ClusterSingletonManager.props(
                 singletonProps = SimpleKeyValueRoot.props(name),

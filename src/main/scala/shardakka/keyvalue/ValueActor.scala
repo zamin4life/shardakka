@@ -1,6 +1,9 @@
 package shardakka.keyvalue
 
-import akka.actor.{ Props, ReceiveTimeout }
+import java.util.zip.CRC32
+
+import akka.actor.{ActorSystem, ActorLogging, Props, ReceiveTimeout}
+import akka.cluster.sharding.{ClusterShardingSettings, ShardRegion, ClusterSharding}
 import akka.persistence.PersistentActor
 import com.google.protobuf.ByteString
 import shardakka.ShardakkaExtension
@@ -12,10 +15,37 @@ trait ValueQuery {
 }
 
 object ValueActor {
+  private def extractShardId: ShardRegion.ExtractShardId = {
+    case c: ValueCommand => (shardId(c.key) % 100).toString
+    case q: ValueQuery => (shardId(q.key) % 100).toString
+  }
+
+  private def extractEntityId: ShardRegion.ExtractEntityId = {
+    case c: ValueCommand => (c.key, c)
+    case q: ValueQuery => (q.key, q)
+  }
+
+  private def typeName(kv: String) = s"shardakka-kv-$kv"
+
+  def startRegion(kv: String)(implicit system: ActorSystem) =
+    ClusterSharding(system).start(
+      typeName = typeName(kv),
+      entityProps = props(kv),
+      settings = ClusterShardingSettings(system),
+      extractEntityId = extractEntityId,
+      extractShardId = extractShardId
+    )
+
+  private def shardId(key: String): Long = {
+    val c = new CRC32
+    c.update(key.getBytes)
+    c.getValue
+  }
+
   def props(name: String) = Props(classOf[ValueActor], name)
 }
 
-final class ValueActor(name: String) extends PersistentActor {
+final class ValueActor(name: String) extends PersistentActor with ActorLogging {
 
   import ValueCommands._
   import ValueEvents._
@@ -45,11 +75,16 @@ final class ValueActor(name: String) extends PersistentActor {
     case Get(_) ⇒
       sender() ! GetResponse(value)
     case ReceiveTimeout ⇒
+      log.debug("Stopping due to TTL end")
       context stop self
   }
 
   override def receiveRecover: Receive = {
     case ValueUpdated(newValue) ⇒ value = Some(newValue)
     case ValueDeleted()         ⇒ value = None
+  }
+
+  override protected def onRecoveryFailure(cause: Throwable, event: Option[Any]): Unit = {
+    super.onRecoveryFailure(cause, event)
   }
 }

@@ -6,6 +6,8 @@ import scala.concurrent.duration._
 
 final class ShardakkaExtension(_system: ExtendedActorSystem) extends Extension with SimpleKeyValueExtension {
   protected implicit val system: ActorSystem = _system
+
+  val isCluster: Boolean = system.settings.ProviderClass.contains("ClusterActorRefProvider")
 }
 
 object ShardakkaExtension extends ExtensionId[ShardakkaExtension] with ExtensionIdProvider {

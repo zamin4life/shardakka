@@ -8,8 +8,12 @@ object SimpleKeyValueRoot {
     Props(classOf[SimpleKeyValueRoot], name)
 }
 
-final class SimpleKeyValueRoot(name: String) extends Root {
+private final class SimpleKeyValueRoot(name: String) extends Root {
+  import context.system
+
   override def persistenceId = ShardakkaExtension.KVPersistencePrefix + "_" + name + "_root"
+
+  val isCluster = ShardakkaExtension(context.system).isCluster
 
   protected override def handleCustom: Receive = {
     case cmd @ ValueCommands.Upsert(key, _) ⇒
@@ -20,7 +24,13 @@ final class SimpleKeyValueRoot(name: String) extends Root {
       valueActorOf(query.key) forward query
   }
 
+  lazy val region = ValueActor.startRegion(name)
+
   protected override def valueActorOf(key: String): ActorRef = {
-    context.child(key).getOrElse(context.actorOf(ValueActor.props(name), key))
+    if (isCluster) {
+      region
+    } else {
+      context.child(key).getOrElse(context.actorOf(ValueActor.props(name), key))
+    }
   }
 }
