@@ -44,6 +44,7 @@ with BeforeAndAfterAll {
   it should "get keys list" in keysList
   it should "restore state" in restoreState
   it should "upsert and delete" in upsertAndDelete
+  it should "repond to exists" in exists
 
   implicit val timeout = Timeout(5.seconds)
 
@@ -112,6 +113,24 @@ with BeforeAndAfterAll {
 
     whenReady(keyValue.get("key1")) { resp ⇒
       resp shouldBe empty
+    }
+  }
+
+  def exists() = {
+    val keyValue = ext.simpleKeyValue("exists")
+
+    whenReady(keyValue.exists("key1")) { resp ⇒
+      resp shouldEqual false
+    }
+
+    whenReady(keyValue.upsert("key1", "value"))(identity)
+
+    whenReady(keyValue.exists("key1")) { resp ⇒
+      resp shouldEqual true
+    }
+
+    whenReady(keyValue.get("key1")) { resp ⇒
+      resp shouldBe Some("value")
     }
   }
 

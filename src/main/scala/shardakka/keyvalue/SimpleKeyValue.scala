@@ -153,6 +153,9 @@ final case class SimpleKeyValue[A](
   def getKeys()(implicit timeout: Timeout): Future[Seq[String]] =
     (commandDest ? RootQueries.GetKeys()).mapTo[RootQueries.GetKeysResponse] map (_.keys)
 
+  def exists(key: String)(implicit timeout: Timeout): Future[Boolean] =
+    (commandDest ? RootQueries.Exists(key)).mapTo[RootQueries.ExistsResponse] map (_.exists)
+
   /**
    * Get Java interface with default operation timeout 5 seconds
    *

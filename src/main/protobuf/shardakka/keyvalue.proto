@@ -16,6 +16,16 @@ message RootQueries {
     message GetKeysResponse {
         repeated string keys = 1;
     }
+
+    message Exists {
+        option (scalapb.message).extends = "shardakka.keyvalue.RootQuery";
+
+        required string key = 1;
+    }
+
+    message ExistsResponse {
+        required bool exists = 1;
+    }
 }
 
 message ValueCommands {

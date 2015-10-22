@@ -138,6 +138,7 @@ abstract class Root
   }
 
   private def handleRootQuery: Receive = {
+    case Exists(key) ⇒ sender ! ExistsResponse(keys contains key)
     case GetKeys() ⇒ sender ! GetKeysResponse(keys.toSeq)
   }
 
