@@ -2,7 +2,7 @@ package shardakka.keyvalue
 
 import java.util.zip.CRC32
 
-import akka.actor.{ActorSystem, ActorLogging, Props, ReceiveTimeout}
+import akka.actor._
 import akka.cluster.sharding.{ClusterShardingSettings, ShardRegion, ClusterSharding}
 import akka.persistence.PersistentActor
 import com.google.protobuf.ByteString
@@ -27,7 +27,7 @@ object ValueActor {
 
   private def typeName(kv: String) = s"shardakka-kv-$kv"
 
-  def startRegion(kv: String)(implicit system: ActorSystem) =
+  def startRegion(kv: String)(implicit system: ActorSystem): ActorRef =
     ClusterSharding(system).start(
       typeName = typeName(kv),
       entityProps = props(kv),
@@ -35,6 +35,9 @@ object ValueActor {
       extractEntityId = extractEntityId,
       extractShardId = extractShardId
     )
+
+  def shardRegion(kv: String)(implicit system: ActorSystem): ActorRef =
+    ClusterSharding(system).shardRegion(typeName(kv))
 
   private def shardId(key: String): Long = {
     val c = new CRC32

@@ -130,18 +130,28 @@ final case class SimpleKeyValue[A](
   import system.dispatcher
 
   private def DefaultTimeout = 5.seconds
+  private val ext = ShardakkaExtension(system)
+
+  val queryDest =
+    if (ext.isCluster)
+        ValueActor.startRegion(name)
+  else
+      proxy
+
+  val commandDest = proxy
+
 
   def upsert(key: String, value: A)(implicit timeout: Timeout): Future[Unit] =
-    (proxy ? ValueCommands.Upsert(key, codec.toBytes(value))) map (_ ⇒ ())
+    (commandDest ? ValueCommands.Upsert(key, codec.toBytes(value))) map (_ ⇒ ())
 
   def delete(key: String)(implicit timeout: Timeout): Future[Unit] =
-    (proxy ? ValueCommands.Delete(key)) map (_ ⇒ ())
+    (commandDest ? ValueCommands.Delete(key)) map (_ ⇒ ())
 
   def get(key: String)(implicit timeout: Timeout): Future[Option[A]] =
-    (proxy ? ValueQueries.Get(key)).mapTo[ValueQueries.GetResponse] map (_.value.map(codec.fromBytes))
+    (queryDest ? ValueQueries.Get(key)).mapTo[ValueQueries.GetResponse] map (_.value.map(codec.fromBytes))
 
   def getKeys()(implicit timeout: Timeout): Future[Seq[String]] =
-    (proxy ? RootQueries.GetKeys()).mapTo[RootQueries.GetKeysResponse] map (_.keys)
+    (commandDest ? RootQueries.GetKeys()).mapTo[RootQueries.GetKeysResponse] map (_.keys)
 
   /**
    * Get Java interface with default operation timeout 5 seconds

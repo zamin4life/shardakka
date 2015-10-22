@@ -24,7 +24,7 @@ private final class SimpleKeyValueRoot(name: String) extends Root {
       valueActorOf(query.key) forward query
   }
 
-  lazy val region = ValueActor.startRegion(name)
+  lazy val region = ValueActor.shardRegion(name)
 
   protected override def valueActorOf(key: String): ActorRef = {
     if (isCluster) {
