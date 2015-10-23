@@ -2,10 +2,6 @@ syntax = 'proto2';
 
 package shardakka;
 
-option (scalapb.options) = {
-    import: "shardakka.TypeMappers._"
-};
-
 import "scalapb/scalapb.proto";
 
 message RootQueries {

@@ -27,7 +27,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-cluster-tools" % akkaV,
   "com.typesafe.akka" %% "akka-cluster-sharding" % akkaV,
   "com.typesafe.akka" %% "akka-testkit" % akkaV,
-  "com.eaio.uuid" % "uuid" % "3.4",
   "com.google.guava" % "guava" % "18.0",
   "com.google.protobuf" % "protobuf-java" % "3.0.0-alpha-3",
   "im.actor" %% "akka-scalapb-serialization" % "0.1.6",
