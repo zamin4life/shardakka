@@ -12,9 +12,12 @@ import im.actor.serialization.ActorSerializer
 import shardakka.{ StringCodec, Codec, ShardakkaExtension }
 
 import scala.collection.JavaConverters._
+import scala.collection.concurrent.TrieMap
 import scala.concurrent.duration._
 import scala.compat.java8.OptionConverters._
 import scala.concurrent.{Await, Future}
+import scala.language.postfixOps
+import scala.util.Try
 
 private case object End
 
@@ -193,12 +196,11 @@ trait SimpleKeyValueExtension {
   ActorSerializer.register(5501, classOf[ValueEvents.ValueUpdated])
   ActorSerializer.register(5502, classOf[ValueEvents.ValueDeleted])
 
-  private val kvs = Caffeine.newBuilder().build[String, SimpleKeyValue[_]]()
+  private val kvs = TrieMap.empty[String, SimpleKeyValue[_]]
 
   def simpleKeyValue[A](name: String, codec: Codec[A]): SimpleKeyValue[A] = {
-    Option(kvs.getIfPresent(name)) match {
-      case Some(kv) ⇒ kv.asInstanceOf[SimpleKeyValue[A]]
-      case None ⇒
+    kvs.getOrElseUpdate(name, {
+      Try {
         val actorName = s"SimpleKeyValueRoot-$name"
 
         val (manager, proxy) =
@@ -223,18 +225,19 @@ trait SimpleKeyValueExtension {
             (root, root)
           }
 
-        val kv = SimpleKeyValue(name, manager, proxy, codec)
-        kvs.put(name, kv)
-        kv
-    }
+        SimpleKeyValue(name, manager, proxy, codec)
+      } recover {
+        case e: InvalidActorNameException => simpleKeyValue(name, codec)
+      } get
+    }).asInstanceOf[SimpleKeyValue[A]]
   }
 
   def simpleKeyValue(name: String): SimpleKeyValue[String] =
     simpleKeyValue(name, StringCodec)
 
-  def shutdownKeyValue(name: String) = Option(kvs.getIfPresent(name)) foreach { kv ⇒
+  def shutdownKeyValue(name: String) = kvs.get(name) foreach { kv ⇒
     kv.shutdown()
-    kvs.invalidate(name)
+    kvs.remove(name)
   }
 }
 
