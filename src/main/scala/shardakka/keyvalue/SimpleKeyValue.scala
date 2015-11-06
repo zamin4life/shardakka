@@ -198,31 +198,37 @@ trait SimpleKeyValueExtension {
   private val kvs = Caffeine.newBuilder().build[String, SimpleKeyValue[_]]()
 
   private def compute[A](codec: Codec[A])(name: String) = {
-    val actorName = s"SimpleKeyValueRoot-$name"
+    try {
+      val actorName = s"SimpleKeyValueRoot-$name"
 
-    val (manager, proxy) =
-      if (isCluster) {
-        val mgr = system.actorOf(
-          ClusterSingletonManager.props(
-            singletonProps = SimpleKeyValueRoot.props(name),
-            terminationMessage = End,
-            settings = ClusterSingletonManagerSettings(system)
-          ), name = actorName
-        )
+      val (manager, proxy) =
+        if (isCluster) {
+          val mgr = system.actorOf(
+            ClusterSingletonManager.props(
+              singletonProps = SimpleKeyValueRoot.props(name),
+              terminationMessage = End,
+              settings = ClusterSingletonManagerSettings(system)
+            ), name = actorName
+          )
 
-        val prx = system.actorOf(
-          ClusterSingletonProxy.props(mgr.path.toStringWithoutAddress, ClusterSingletonProxySettings(system)),
-          name = s"SimpleKeyValueRoot-$name-Proxy"
-        )
+          val prx = system.actorOf(
+            ClusterSingletonProxy.props(mgr.path.toStringWithoutAddress, ClusterSingletonProxySettings(system)),
+            name = s"SimpleKeyValueRoot-$name-Proxy"
+          )
 
-        (mgr, prx)
-      } else {
-        val root = system.actorOf(SimpleKeyValueRoot.props(name), actorName)
+          (mgr, prx)
+        } else {
+          val root = system.actorOf(SimpleKeyValueRoot.props(name), actorName)
 
-        (root, root)
-      }
+          (root, root)
+        }
 
-    SimpleKeyValue(name, manager, proxy, codec)
+      SimpleKeyValue(name, manager, proxy, codec)
+    } catch {
+      case e: Exception =>
+        system.log.error(e, s"Failed to create KeyValue $name")
+        throw e
+    }
   }
 
   def simpleKeyValue[A](name: String, codec: Codec[A]): SimpleKeyValue[A] = {
