@@ -36,9 +36,6 @@ object ValueActor {
       extractShardId = extractShardId
     )
 
-  def shardRegion(kv: String)(implicit system: ActorSystem): ActorRef =
-    ClusterSharding(system).shardRegion(typeName(kv))
-
   private def shardId(key: String): Long = {
     val c = new CRC32
     c.update(key.getBytes)

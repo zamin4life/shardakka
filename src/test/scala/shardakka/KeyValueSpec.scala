@@ -11,34 +11,11 @@ import org.scalatest.{BeforeAndAfterAll, FlatSpecLike, Matchers}
 import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration._
 
-final class KeyValueSpecLocal extends KeyValueSpec(ActorSystem())
+final class LocalKeyValueSpec extends KeyValueSpec(SpecBase.localSystem())
 
-final class KeyValueSpecCluster extends KeyValueSpec(ActorSystem("kvspec", ConfigFactory.parseString(
-  """
-    |akka {
-    |  actor {
-    |    provider = "akka.cluster.ClusterActorRefProvider"
-    |  }
-    |
-    |  remote {
-    |    netty.tcp {
-    |      hostname = "127.0.0.1"
-    |      port = 2552
-    |    }
-    |  }
-    |
-    |  cluster {
-    |    seed-nodes = [
-    |      "akka.tcp://kvspec@127.0.0.1:2552"]
-    |  }
-    |}
-  """.stripMargin)))
+final class ClusterKeyValueSpec extends KeyValueSpec(SpecBase.clusterSystem())
 
-abstract class KeyValueSpec(system: ActorSystem) extends TestKit(system)
-with FlatSpecLike
-with ScalaFutures
-with Matchers
-with BeforeAndAfterAll {
+abstract class KeyValueSpec(system: ActorSystem) extends SpecBase(system) {
 
   it should "set and get values" in setAndGet
   it should "get keys list" in keysList
@@ -132,10 +109,5 @@ with BeforeAndAfterAll {
     whenReady(keyValue.get("key1")) { resp ⇒
       resp shouldBe Some("value")
     }
-  }
-
-  override def afterAll = {
-    system.shutdown()
-    system.awaitTermination()
   }
 }
