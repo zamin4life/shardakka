@@ -15,6 +15,11 @@ resolvers ++= Seq(
   Resolver.bintrayRepo("jdgoldie", "maven")
 )
 
+resolvers ++= Seq(
+  "Nexus DiegoSilva Releases" at "http://nexus.diegosilva.com.br:8081/nexus/content/repositories/releases/",
+  "Nexus DiegoSilva Snapshots" at "http://nexus.diegosilva.com.br:8081/nexus/content/repositories/snapshots/"
+)
+
 libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-actor" % akkaV,
   "com.typesafe.akka" %% "akka-persistence" % akkaV,
@@ -22,7 +27,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-cluster-sharding" % akkaV,
   "com.typesafe.akka" %% "akka-testkit" % akkaV,
   "com.google.guava" % "guava" % "18.0",
-  "im.actor" %% "akka-scalapb-serialization" % "0.1.15-SNAPSHOT",
+  "im.actor" %% "akka-scalapb-serialization" % "0.1.16-SNAPSHOT",
   "org.scala-lang.modules" %% "scala-java8-compat" % "0.7.0",
   "com.google.protobuf" % "protobuf-java" % "3.1.0" % "protobuf",
   "com.trueaccord.scalapb" %% "scalapb-runtime" % "0.5.47" % "protobuf",
