@@ -4,6 +4,7 @@ import ReleaseStateTransformations._
 scalaVersion := "2.11.8"
 
 name := "shardakka"
+
 organization := "im.actor"
 organizationName := "Actor LLC"
 organizationHomepage := Some(new URL("https://actor.im/"))
@@ -27,7 +28,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-cluster-sharding" % akkaV,
   "com.typesafe.akka" %% "akka-testkit" % akkaV,
   "com.google.guava" % "guava" % "18.0",
-  "im.actor" %% "akka-scalapb-serialization" % "0.1.16-SNAPSHOT",
+  "im.actor" %% "akka-scalapb-serialization" % "0.1.17-SNAPSHOT",
   "org.scala-lang.modules" %% "scala-java8-compat" % "0.7.0",
   "com.google.protobuf" % "protobuf-java" % "3.1.0" % "protobuf",
   "com.trueaccord.scalapb" %% "scalapb-runtime" % "0.5.47" % "protobuf",
@@ -37,8 +38,6 @@ libraryDependencies ++= Seq(
 PB.targets in Compile := Seq(
   scalapb.gen() -> (sourceManaged in Compile).value
 )
-
-parallelExecution in Test := false
 
 releaseProcess := Seq[ReleaseStep](
   checkSnapshotDependencies,
