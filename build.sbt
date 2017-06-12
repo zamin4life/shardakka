@@ -9,7 +9,7 @@ organization := "im.actor"
 organizationName := "Actor LLC"
 organizationHomepage := Some(new URL("https://actor.im/"))
 
-val akkaV = "2.4.11.2"
+val akkaV = "2.5.2"
 
 resolvers ++= Seq(
   Resolver.sonatypeRepo("releases"),
@@ -28,7 +28,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-cluster-sharding" % akkaV,
   "com.typesafe.akka" %% "akka-testkit" % akkaV,
   "com.google.guava" % "guava" % "18.0",
-  "im.actor" %% "akka-scalapb-serialization" % "0.1.18-SNAPSHOT",
+  "im.actor" %% "akka-scalapb-serialization" % "0.1.20-SNAPSHOT",
   "org.scala-lang.modules" %% "scala-java8-compat" % "0.7.0",
   "com.google.protobuf" % "protobuf-java" % "3.1.0" % "protobuf",
   "com.trueaccord.scalapb" %% "scalapb-runtime" % "0.5.47" % "protobuf",
