@@ -28,10 +28,11 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-cluster-sharding" % akkaV,
   "com.typesafe.akka" %% "akka-testkit" % akkaV,
   "com.google.guava" % "guava" % "18.0",
-  "im.actor" %% "akka-scalapb-serialization" % "0.1.21-SNAPSHOT",
+//  "im.actor" %% "akka-scalapb-serialization" % "0.1.21-SNAPSHOT",
   "org.scala-lang.modules" %% "scala-java8-compat" % "0.7.0",
   "com.google.protobuf" % "protobuf-java" % "3.1.0" % "protobuf",
-  "com.trueaccord.scalapb" %% "scalapb-runtime" % "0.5.47" % "protobuf",
+  "com.thesamet.scalapb" %% "scalapb-runtime" % scalapb.compiler.Version.scalapbVersion % "protobuf",
+  "com.github.ben-manes.caffeine" % "caffeine" % "2.2.7",
   "org.scalatest" %% "scalatest" % "2.2.4" % "test"
 )
 
@@ -55,6 +56,7 @@ releaseProcess := Seq[ReleaseStep](
 )
 
 unmanagedResourceDirectories in Compile += baseDirectory.value / "src" / "main" / "protobuf"
+unmanagedJars in Compile += file("libs/akka-scalapb-serialization_2.11-0.1.21-SNAPSHOT.jar")
 
 publishTo := {
   val nexus = "http://nexus.diegosilva.com.br:8081/nexus/"

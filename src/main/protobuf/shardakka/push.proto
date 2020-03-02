@@ -1,0 +1,39 @@
+syntax = 'proto3';
+
+option java_package = "shardakka.keyvalue";
+
+import "scalapb/scalapb.proto";
+import "google/protobuf/wrappers.proto";
+
+message GCMPushCredentials {
+    option (scalapb.message).extends = "shardakka.keyvalue.GooglePushCredentials";
+
+    int64 auth_id = 1;
+    int64 project_id = 2;
+    string reg_id = 3;
+}
+
+message FirebasePushCredentials {
+    option (scalapb.message).extends = "shardakka.keyvalue.GooglePushCredentials";
+
+    int64 auth_id = 1;
+    int64 project_id = 2;
+    string reg_id = 3;
+}
+
+message ApplePushCredentials {
+    option (scalapb.message).extends = "shardakka.keyvalue.PushCredentials";
+
+    int64 auth_id = 1;
+    google.protobuf.Int32Value apns_key = 2;
+    bytes token = 3;
+    bool is_voip = 4;
+    google.protobuf.StringValue bundle_id = 5;
+}
+
+message ActorPushCredentials {
+    option (scalapb.message).extends = "shardakka.keyvalue.PushCredentials";
+
+    int64 auth_id = 1;
+    string endpoint = 2;
+}

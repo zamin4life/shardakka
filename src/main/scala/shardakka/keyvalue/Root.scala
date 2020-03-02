@@ -7,6 +7,15 @@ import akka.persistence.PersistentActor
 
 import scala.reflect.ClassTag
 
+trait PushCredentials {
+  val authId: Long
+}
+
+trait GooglePushCredentials extends PushCredentials {
+  val projectId: Long
+  val regId: String
+}
+
 trait Command {
   val key: String
 }
